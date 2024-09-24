@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getQuizzes } from "../api";
 
 type Position = {
   x: number;
@@ -17,6 +18,11 @@ export const GameScreen = () => {
 
   const rowLength = mockData.length;
   const colLengths = mockData.map((row) => row.length);
+
+  const onClick = async () => {
+    const response = await getQuizzes();
+    console.log(response);
+  };
 
   const keyDownHandler = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const key = e.code;
@@ -104,6 +110,7 @@ export const GameScreen = () => {
         ))}
       </div>
       <div className="text-2xl">{result}</div>
+      <button onClick={onClick}>button</button>
     </>
   );
 };
