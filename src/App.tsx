@@ -1,5 +1,7 @@
+import { GameScreen } from "./components/GameScreen";
+
 function App() {
-  return <></>;
+  return <><GameScreen /></>;
 }
 
 export default App;
