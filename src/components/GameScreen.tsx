@@ -24,7 +24,11 @@ export const GameScreen = () => {
     if (key === "ArrowUp") {
       if (position.y > 0) {
         if (position.x > colLengths[position.y - 1] - 1) {
-          setPosition((prev) => ({ ...prev, x: colLengths[position.y - 1] - 1, y: position.y - 1 }));
+          setPosition((prev) => ({
+            ...prev,
+            x: colLengths[position.y - 1] - 1,
+            y: position.y - 1,
+          }));
         } else {
           setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
         }
@@ -34,7 +38,11 @@ export const GameScreen = () => {
     if (key === "ArrowDown") {
       if (position.y < rowLength - 1) {
         if (position.x > colLengths[position.y + 1] - 1) {
-          setPosition((prev) => ({ ...prev, x: colLengths[position.y + 1] - 1, y: position.y + 1 }));
+          setPosition((prev) => ({
+            ...prev,
+            x: colLengths[position.y + 1] - 1,
+            y: position.y + 1,
+          }));
         } else {
           setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
         }
@@ -50,7 +58,6 @@ export const GameScreen = () => {
     }
   };
 
-  // コンポーネントがマウントされたときにフォーカスを当てる
   useEffect(() => {
     const element = document.getElementById("game-screen");
     if (element) {
@@ -59,11 +66,24 @@ export const GameScreen = () => {
   }, []);
 
   return (
-    <div id="game-screen" onKeyDown={keyDownHandler} tabIndex={0}>
+    <div
+      id="game-screen"
+      onKeyDown={keyDownHandler}
+      tabIndex={0}
+      className="focus:outline-none"
+    >
       {mockData.map((row, i) => (
         <div key={i} className="flex">
           {row.map((cell, j) => (
-            <div key={j} style={{ backgroundColor: position.y === i && position.x === j ? 'lightblue' : 'transparent', }}>
+            <div
+              key={j}
+              style={{
+                backgroundColor:
+                  position.y === i && position.x === j
+                    ? "lightblue"
+                    : "transparent",
+              }}
+            >
               {cell}
             </div>
           ))}

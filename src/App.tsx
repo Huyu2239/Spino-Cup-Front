@@ -1,7 +1,11 @@
 import { GameScreen } from "./components/GameScreen";
 
 function App() {
-  return <><GameScreen /></>;
+  return (
+    <>
+      <GameScreen />
+    </>
+  );
 }
 
 export default App;
