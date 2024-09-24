@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getQuizzes } from "../api";
+import { getQuizzes, getResult, Quizzes } from "../api";
 
 type Position = {
   x: number;
@@ -8,23 +8,23 @@ type Position = {
 
 export const GameScreen = () => {
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [quizzes, setQuizzes] = useState<Quizzes | undefined>(undefined);
   const [result, setResult] = useState<string>("");
-  const mockData = [
-    ["hoge", "hoge", "hoge"],
-    ["aaaa", "hoge"],
-    ["hoge", "hoge"],
-    ["hoge", "hoge", "hoge"],
-  ];
 
-  const rowLength = mockData.length;
-  const colLengths = mockData.map((row) => row.length);
+  const quiz = quizzes ? quizzes[0] : undefined;
 
-  const onClick = async () => {
-    const response = await getQuizzes();
-    console.log(response);
-  };
+  const rowLength = quiz ? quiz.question.length : undefined;
+  const colLengths = quiz ? quiz.question.map((row) => row.length) : undefined;
+
+  useEffect(() => {
+    (async () => {
+      const response = await getQuizzes();
+      setQuizzes(response);
+    })();
+  }, []);
 
   const keyDownHandler = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!quizzes || !rowLength || !colLengths) return;
     const key = e.code;
 
     if (key === "ArrowUp") {
@@ -67,9 +67,15 @@ export const GameScreen = () => {
       answerQuestion();
     }
   };
-  const answerQuestion = () => {
-    let ans = { x: 1, y: 1 };
-    if (position.x === ans.x && position.y === ans.y) {
+  const answerQuestion = async () => {
+    const response = await getResult(
+      quiz!.id.toString(),
+      position.x,
+      position.y
+    );
+    if (response === undefined) return;
+    console.log(response.is_correct);
+    if (response.is_correct) {
       setResult("正解");
     } else {
       setResult("不正解");
@@ -89,28 +95,20 @@ export const GameScreen = () => {
         id="game-screen"
         onKeyDown={keyDownHandler}
         tabIndex={0}
-        className="focus:outline-none text-2xl bg-gray-800 text-white p-4"
+        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[100px] text-gray-800"
       >
-        {mockData.map((row, i) => (
-          <div key={i} className="flex">
-            {row.map((cell, j) => (
-              <div
-                key={j}
-                style={{
-                  backgroundColor:
-                    position.y === i && position.x === j
-                      ? "blue"
-                      : "transparent",
-                }}
-              >
-                {cell}
-              </div>
-            ))}
-          </div>
-        ))}
+        {quiz &&
+          quiz.question.map((row, i) => (
+            <div key={i} className="flex mb-2">
+              {row.map((cell, j) => (
+                <div key={j} className="mr-4">
+                  {cell}
+                </div>
+              ))}
+            </div>
+          ))}
       </div>
       <div className="text-2xl">{result}</div>
-      <button onClick={onClick}>button</button>
     </>
   );
 };
