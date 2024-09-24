@@ -22,7 +22,7 @@ export default [
     languageOptions: {
       parserOptions: {
         // project: true,
-        projectService:true,
+        projectService: true,
         tsconfigRootDir: __dirname,
       },
     },

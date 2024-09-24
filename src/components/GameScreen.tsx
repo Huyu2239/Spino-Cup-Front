@@ -1,10 +1,6 @@
-import React from 'react'
+import React from "react";
 
 export const GameScreen = () => {
-    const mockData = {
-        
-    }
-  return (
-    <div></div>
-  )
-}
+  const mockData = {};
+  return <div></div>;
+};
