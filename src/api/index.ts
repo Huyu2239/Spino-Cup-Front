@@ -7,9 +7,13 @@ export const apiClient = axios.create({
 
 interface Quiz {
   id: number;
-  question: Array<Array<string>>;
-  difficulty: string;
-  lnaguage: string;
+  question: string;
+  code: string;
+  input_sample: string;
+  output_sample: string;
+  input_secret: string;
+  output_secret: string;
+  pre_code: string;
 }
 
 export type Quizzes = Array<Quiz>;

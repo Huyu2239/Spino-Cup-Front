@@ -4,6 +4,7 @@ import { getQuizzes, getResult, Quizzes } from "../api";
 import useCodeExecutor from "../hooks/useCodeExecutor";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { parse } from "acorn";
+import CodeEditor from "./CodeEditor";
 type Position = {
   x: number;
   y: number;
@@ -21,44 +22,47 @@ const GameScreen = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [textField, setTextField] = useState<string>("");
 
-  // tips: executionResult, clearOutput は 使用すればbuildは通る todo: 使う
-  const { executeCode, executionResult, clearOutput } = useCodeExecutor();
+
+  const { executeCode, executionResult } = useCodeExecutor();
+
 
   const quiz = quizzes ? quizzes[0] : undefined;
-  const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTextField(event.target.value);
-    const cloneQuestion = [...structuredClone(quiz!).question];
-    cloneQuestion[clickPosition.x][clickPosition.y] = event.target.value;
-    const newUserCode = cloneQuestion.flat().join(" ");
-    console.log("newUserCode", event.target.value);
-    setUserCode(newUserCode);
-  };
-  const [userCode, setUserCode] = useState<string>(
-    quiz ? quiz.question.flat().join(" ") : ""
-  );
+
+  // const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setTextField(event.target.value);
+  //   const cloneQuestion = [...structuredClone(quiz!).question];
+  //   cloneQuestion[clickPosition.x][clickPosition.y] = event.target.value;
+  //   const newUserCode = cloneQuestion.flat().join(" ");
+  //   console.log("newUserCode", event.target.value);
+  //   setUserCode(newUserCode);
+  // };
+
+  const [userCode, setUserCode] = useState<string>(quiz ? quiz.code : "");
   let answer;
   let ast = "";
   let answerAst = "";
-  if (quiz) {
-    answer = quiz.question
-      .flat()
-      .map((word) =>
-        word === "console.log(evenNumbers.lenght);"
-          ? "console.log(evenNumbers.length);"
-          : word
-      )
-      .join(" ");
-    ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
-    answerAst = JSON.stringify(parse(answer, {ecmaVersion: 2022}), null, 2);
-  }
+
+  // if (quiz) {
+  //   answer = quiz.question
+  //     .flat()
+  //     .map((word) =>
+  //       word === "console.log(evenNumbers.lenght);"
+  //         ? "console.log(evenNumbers.length);"
+  //         : word
+  //     )
+  //     .join(" ");
+  //   ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
+  //   answerAst = JSON.stringify(answer, {ecmaVersion: 2022}), null, 2);
+  // }
+
 
   useEffect(() => {
     (async () => {
       const response = await getQuizzes();
       setQuizzes(response);
       if (response) {
-        console.log("response", response[0].question.flat().join(" "));
-        setUserCode(response[0].question.flat().join(" "));
+        console.log("response", response[0].code);
+        setUserCode(response[0].code);
       }
     })();
   }, []);
@@ -83,24 +87,29 @@ const GameScreen = () => {
 
   useEffect(() => {
     if (!quiz) return;
-    executeCode(quiz.question.flat().join(" "));
+
+    executeCode(userCode);
   }, []);
 
   const answerQuestion = async () => {
     if (!quiz) return;
-    executeCode(quiz.question.flat().join(" "));
+    executeCode(quiz.pre_code + userCode);
 
-    const response = await getResult(
-      quiz.id.toString(),
-      clickPosition.y,
-      clickPosition.x,
-      textField
+    setResult(
+      executionResult.logs.join(" ") == quiz.output_sample ? "正解" : "不正解"
     );
-    if (response === undefined) return;
-    // setResult(response.is_correct ? "正解" : "不正解");
+
+    // const response = await getResult(
+    //   quiz.id.toString(),
+    //   clickPosition.y,
+    //   clickPosition.x,
+    //   textField
+    // );
+    // if (response === undefined) return;
+    // // setResult(response.is_correct ? "正解" : "不正解");
     console.log(ast === answerAst);
 
-    setResult(ast === answerAst ? "正解" : "不正解");
+    //setResult(ast === answerAst ? "正解" : "不正解");
   };
 
   const onClickArea = (x: number, y: number, event: React.MouseEvent) => {
@@ -113,30 +122,24 @@ const GameScreen = () => {
   return (
     <div className="flex max-h-screen">
       {/* {ast && <pre>{ast}</pre>} */}
-      <div className="font-mono w-[50%] mx-2">
+      <div className="font-mono w-[50%] mx-2 overflow-y-scroll ">
         <div className=" p-4 rounded-md border border-[#3c3c3c]">
           <h3 className="text-xl font-semibold mb-2 ">エラー内容</h3>
-          <p></p>
+
+          <div>
+            {executionResult &&
+              executionResult.logs
+                .filter((log, i) => executionResult.logs.indexOf(log) === i)
+                .map((log, i) => <p key={i}>{log}</p>)}
+            {executionResult.error && <p>{executionResult.error}</p>}
+          </div>
         </div>
         <div
           id="game-screen"
           ref={gameAreaRef}
           className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-4 relative overflow-hidden min-h-[500px] w-full"
         >
-          {quiz &&
-            quiz.question.map((row, i) => (
-              <div key={i} className="flex mb-2">
-                {row.map((cell, j) => (
-                  <div
-                    key={j}
-                    className="mr-4 hover:bg-blue-500"
-                    onClick={(event) => onClickArea(i, j, event)}
-                  >
-                    {cell === "" ? " " : cell}
-                  </div>
-                ))}
-              </div>
-            ))}
+          <CodeEditor code={userCode} onChange={setUserCode} />
 
           <svg
             id="cursor-overlay"
@@ -166,16 +169,6 @@ const GameScreen = () => {
         </div>
 
         <div className="mt-2 space-y-4">
-          <div className=" p-4 rounded-md border border-[#3c3c3c]">
-            <h3 className="text-xl font-semibold mb-2 ">選択している単語</h3>
-            <TextField
-              type="text"
-              value={textField}
-              onChange={handleText}
-              disabled={!textField}
-              sx={{ width: "100%" }}
-            />
-          </div>
           <Button
             onClick={answerQuestion}
             className="w-full"
@@ -186,9 +179,9 @@ const GameScreen = () => {
           <div className="p-4 rounded-md border border-[#3c3c3c] h-[100px]">
             <h3 className="text-xl font-semibold mb-2">結果</h3>
             <p className="text-xl font-bold">{result}</p>
+            <p className="text-xl font-bold">{executionResult.logs}</p>
+            <p className="text-xl font-bold">{executionResult.result}</p>
           </div>
-
-          {/* <p>{String(executionResult.logs)}</p> */}
         </div>
       </div>
       <div className="w-[50%] overflow-y-scroll">
