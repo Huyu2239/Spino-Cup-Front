@@ -1,4 +1,4 @@
-import { GameScreen } from "./components/GameScreen";
+import GameScreen from "./components/GameScreen";
 
 function App() {
   return (
