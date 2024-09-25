@@ -22,9 +22,7 @@ const GameScreen = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [textField, setTextField] = useState<string>("");
 
-
   const { executeCode, executionResult } = useCodeExecutor();
-
 
   const quiz = quizzes ? quizzes[0] : undefined;
 
@@ -54,7 +52,6 @@ const GameScreen = () => {
   //   ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
   //   answerAst = JSON.stringify(answer, {ecmaVersion: 2022}), null, 2);
   // }
-
 
   useEffect(() => {
     (async () => {
