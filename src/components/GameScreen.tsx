@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { getQuizzes, getResult, Quizzes } from "../api";
+import { Box, Typography, Button, Paper } from "@mui/material";
 
 type Position = {
   x: number;
@@ -7,14 +8,16 @@ type Position = {
 };
 
 export const GameScreen = () => {
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [cursorPosition, setCursorPosition] = useState<Position>({
+    x: 0,
+    y: 0,
+  });
+  const [clickPosition, setClickPosition] = useState<Position>({ x: 0, y: 0 });
   const [quizzes, setQuizzes] = useState<Quizzes | undefined>(undefined);
   const [result, setResult] = useState<string>("");
+  const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const quiz = quizzes ? quizzes[0] : undefined;
-
-  const rowLength = quiz ? quiz.question.length : undefined;
-  const colLengths = quiz ? quiz.question.map((row) => row.length) : undefined;
 
   useEffect(() => {
     (async () => {
@@ -23,92 +26,125 @@ export const GameScreen = () => {
     })();
   }, []);
 
-  const keyDownHandler = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!quizzes || !rowLength || !colLengths) return;
-    const key = e.code;
-
-    if (key === "ArrowUp") {
-      if (position.y > 0) {
-        if (position.x > colLengths[position.y - 1] - 1) {
-          setPosition((prev) => ({
-            ...prev,
-            x: colLengths[position.y - 1] - 1,
-            y: position.y - 1,
-          }));
-        } else {
-          setPosition((prev) => ({ ...prev, y: prev.y - 1 }));
-        }
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (gameAreaRef.current) {
+        const rect = gameAreaRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        setCursorPosition({ x, y });
       }
-    }
+    };
 
-    if (key === "ArrowDown") {
-      if (position.y < rowLength - 1) {
-        if (position.x > colLengths[position.y + 1] - 1) {
-          setPosition((prev) => ({
-            ...prev,
-            x: colLengths[position.y + 1] - 1,
-            y: position.y + 1,
-          }));
-        } else {
-          setPosition((prev) => ({ ...prev, y: prev.y + 1 }));
-        }
-      }
-    }
+    const gameArea = gameAreaRef.current;
+    gameArea?.addEventListener("mousemove", handleMouseMove);
 
-    if (key === "ArrowLeft" && position.x > 0) {
-      setPosition((prev) => ({ ...prev, x: prev.x - 1 }));
-    }
+    return () => {
+      gameArea?.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
-    if (key === "ArrowRight" && position.x < colLengths[position.y] - 1) {
-      setPosition((prev) => ({ ...prev, x: prev.x + 1 }));
-    }
-
-    if (key === "Space") {
-      answerQuestion();
-    }
-  };
   const answerQuestion = async () => {
+    if (!quiz) return;
     const response = await getResult(
-      quiz!.id.toString(),
-      position.x,
-      position.y
+      quiz.id.toString(),
+      clickPosition.x,
+      clickPosition.y
     );
     if (response === undefined) return;
-    console.log(response.is_correct);
-    if (response.is_correct) {
-      setResult("正解");
-    } else {
-      setResult("不正解");
-    }
+    setResult(response.is_correct ? "正解" : "不正解");
   };
 
-  useEffect(() => {
-    const element = document.getElementById("game-screen");
-    if (element) {
-      element.focus();
-    }
-  }, []);
+  const onClickArea = (x: number, y: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    setClickPosition({ x: x, y: y });
+  };
 
   return (
     <>
       <div
         id="game-screen"
-        onKeyDown={keyDownHandler}
-        tabIndex={0}
-        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[100px] text-gray-800"
+        ref={gameAreaRef}
+        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[100px] relative overflow-hidden h-[300px] w-full"
       >
         {quiz &&
           quiz.question.map((row, i) => (
             <div key={i} className="flex mb-2">
               {row.map((cell, j) => (
-                <div key={j} className="mr-4">
+                <div
+                  key={j}
+                  className="mr-4 hover:bg-blue-500"
+                  onClick={(event) => onClickArea(i, j, event)}
+                >
                   {cell}
                 </div>
               ))}
             </div>
           ))}
+        <svg
+          id="cursor-overlay"
+          width="100%"
+          height="100%"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            pointerEvents: "none",
+          }}
+        >
+          <defs>
+            <mask id="hole">
+              <rect width="100%" height="100%" fill="white" />
+              <ellipse
+                cx={cursorPosition.x}
+                cy={cursorPosition.y}
+                rx="120"
+                ry="30"
+                fill="black"
+              />
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="black" mask="url(#hole)" />
+        </svg>
       </div>
-      <div className="text-2xl">{result}</div>
+      {/* <div className="text-2xl">
+        {clickPosition.x}:{clickPosition.y}
+      </div> */}
+      <Box className="flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg shadow-lg">
+        <Paper elevation={2} className="p-4 mb-4 w-full text-center">
+          <Typography
+            variant="h5"
+            component="h3"
+            className="text-2xl font-semibold"
+          >
+            選択している単語
+          </Typography>
+          <Typography variant="h6" className="text-xl font-bold mt-2">
+            {quiz?.question[clickPosition.x][clickPosition.y]}
+          </Typography>
+        </Paper>
+
+        <Button
+          variant="contained"
+          onClick={answerQuestion}
+          className="mb-4 bg-blue-600 text-white hover:bg-blue-500 transition duration-300 w-full"
+        >
+          回答
+        </Button>
+
+        <Paper elevation={2} className="p-4 w-full text-center mt-4">
+          <Typography
+            variant="h5"
+            component="h3"
+            className="text-2xl font-semibold"
+          >
+            結果
+          </Typography>
+          <Typography variant="h6" className="text-xl font-bold mt-2">
+            {result}
+          </Typography>
+        </Paper>
+      </Box>
     </>
   );
 };
