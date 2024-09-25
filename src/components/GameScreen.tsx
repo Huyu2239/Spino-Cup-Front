@@ -107,9 +107,6 @@ export const GameScreen = () => {
           <rect width="100%" height="100%" fill="black" mask="url(#hole)" />
         </svg>
       </div>
-      {/* <div className="text-2xl">
-        {clickPosition.x}:{clickPosition.y}
-      </div> */}
       <Box className="flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg shadow-lg">
         <Paper elevation={2} className="p-4 mb-4 w-full text-center">
           <Typography
