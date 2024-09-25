@@ -53,14 +53,9 @@ const GameScreen = () => {
     const response = await getResult(
       quiz.id.toString(),
       clickPosition.x,
-      clickPosition.y
+      clickPosition.y,
+      textField
     );
-    // const response = await getResult(
-    //   quiz.id.toString(),
-    //   clickPosition.x,
-    //   clickPosition.y
-    //   textField
-    // )
     if (response === undefined) return;
     setResult(response.is_correct ? "正解" : "不正解");
   };
