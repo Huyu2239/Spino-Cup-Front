@@ -35,9 +35,7 @@ const GameScreen = () => {
   //   setUserCode(newUserCode);
   // };
 
-  const [userCode, setUserCode] = useState<string>(
-    quiz ? quiz.code : ""
-  );
+  const [userCode, setUserCode] = useState<string>(quiz ? quiz.code : "");
   let answer;
   let ast = "";
   let answerAst = "";
@@ -59,10 +57,8 @@ const GameScreen = () => {
       const response = await getQuizzes();
       setQuizzes(response);
       if (response) {
-
         console.log("response", response[0].code);
         setUserCode(response[0].code);
-
       }
     })();
   }, []);
@@ -95,8 +91,10 @@ const GameScreen = () => {
     if (!quiz) return;
     executeCode(quiz.pre_code + userCode);
 
-    setResult(executionResult.logs.join(" ") == quiz.output_sample ? "正解" : "不正解")
-    
+    setResult(
+      executionResult.logs.join(" ") == quiz.output_sample ? "正解" : "不正解"
+    );
+
     // const response = await getResult(
     //   quiz.id.toString(),
     //   clickPosition.y,
@@ -106,7 +104,6 @@ const GameScreen = () => {
     // if (response === undefined) return;
     // // setResult(response.is_correct ? "正解" : "不正解");
     console.log(ast === answerAst);
-
 
     //setResult(ast === answerAst ? "正解" : "不正解");
   };
@@ -138,8 +135,7 @@ const GameScreen = () => {
           ref={gameAreaRef}
           className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-4 relative overflow-hidden min-h-[500px] w-full"
         >
-          
-          <CodeEditor code={userCode} onChange={setUserCode}/>
+          <CodeEditor code={userCode} onChange={setUserCode} />
 
           <svg
             id="cursor-overlay"
