@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Button, TextField } from "@mui/material";
 import { getQuizzes, getResult, Quizzes } from "../api";
-import { Box, Typography, Button, Paper } from "@mui/material";
 
 type Position = {
   x: number;
   y: number;
 };
 
-export const GameScreen = () => {
+const GameScreen = () => {
   const [cursorPosition, setCursorPosition] = useState<Position>({
     x: 0,
     y: 0,
@@ -16,6 +16,10 @@ export const GameScreen = () => {
   const [quizzes, setQuizzes] = useState<Quizzes | undefined>(undefined);
   const [result, setResult] = useState<string>("");
   const gameAreaRef = useRef<HTMLDivElement>(null);
+  const [textField, setTextField] = useState<string>("");
+  const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTextField(event.target.value);
+  };
 
   const quiz = quizzes ? quizzes[0] : undefined;
 
@@ -51,21 +55,29 @@ export const GameScreen = () => {
       clickPosition.x,
       clickPosition.y
     );
+    // const response = await getResult(
+    //   quiz.id.toString(),
+    //   clickPosition.x,
+    //   clickPosition.y
+    //   textField
+    // )
     if (response === undefined) return;
     setResult(response.is_correct ? "正解" : "不正解");
   };
 
   const onClickArea = (x: number, y: number, event: React.MouseEvent) => {
+    if (!quiz) return;
     event.preventDefault();
     setClickPosition({ x: x, y: y });
+    setTextField(quiz.question[x][y]);
   };
 
   return (
-    <>
+    <div className=" p-4 font-mono">
       <div
         id="game-screen"
         ref={gameAreaRef}
-        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[100px] relative overflow-hidden h-[300px] w-full"
+        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[50px] relative overflow-hidden h-[300px] w-full"
       >
         {quiz &&
           quiz.question.map((row, i) => (
@@ -107,41 +119,27 @@ export const GameScreen = () => {
           <rect width="100%" height="100%" fill="black" mask="url(#hole)" />
         </svg>
       </div>
-      <Box className="flex flex-col items-center justify-center p-6 bg-gray-100 rounded-lg shadow-lg">
-        <Paper elevation={2} className="p-4 mb-4 w-full text-center">
-          <Typography
-            variant="h5"
-            component="h3"
-            className="text-2xl font-semibold"
-          >
-            選択している単語
-          </Typography>
-          <Typography variant="h6" className="text-xl font-bold mt-2">
-            {quiz?.question[clickPosition.x][clickPosition.y]}
-          </Typography>
-        </Paper>
 
-        <Button
-          variant="contained"
-          onClick={answerQuestion}
-          className="mb-4 bg-blue-600 text-white hover:bg-blue-500 transition duration-300 w-full"
-        >
+      <div className="mt-8 space-y-4">
+        <div className=" p-4 rounded-md border border-[#3c3c3c]">
+          <h3 className="text-xl font-semibold mb-2 ">選択している単語</h3>
+          <TextField
+            type="text"
+            value={textField}
+            onChange={handleText}
+            disabled={!textField}
+          />
+        </div>
+        <Button onClick={answerQuestion} className="w-full" variant="contained">
           回答
         </Button>
-
-        <Paper elevation={2} className="p-4 w-full text-center mt-4">
-          <Typography
-            variant="h5"
-            component="h3"
-            className="text-2xl font-semibold"
-          >
-            結果
-          </Typography>
-          <Typography variant="h6" className="text-xl font-bold mt-2">
-            {result}
-          </Typography>
-        </Paper>
-      </Box>
-    </>
+        <div className="p-4 rounded-md border border-[#3c3c3c] h-[100px]">
+          <h3 className="text-xl font-semibold mb-2">結果</h3>
+          <p className="text-xl font-bold">{result}</p>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export default GameScreen;
