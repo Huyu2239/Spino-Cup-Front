@@ -52,8 +52,8 @@ const GameScreen = () => {
     if (!quiz) return;
     const response = await getResult(
       quiz.id.toString(),
-      clickPosition.x,
       clickPosition.y,
+      clickPosition.x,
       textField
     );
     if (response === undefined) return;
@@ -72,7 +72,7 @@ const GameScreen = () => {
       <div
         id="game-screen"
         ref={gameAreaRef}
-        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[50px] relative overflow-hidden h-[300px] w-full"
+        className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-[50px] relative overflow-hidden min-h-[500px] w-full"
       >
         {quiz &&
           quiz.question.map((row, i) => (
@@ -83,7 +83,7 @@ const GameScreen = () => {
                   className="mr-4 hover:bg-blue-500"
                   onClick={(event) => onClickArea(i, j, event)}
                 >
-                  {cell}
+                  {cell === "" ? " " : cell}
                 </div>
               ))}
             </div>
@@ -123,6 +123,7 @@ const GameScreen = () => {
             value={textField}
             onChange={handleText}
             disabled={!textField}
+            sx={{ width: "100%" }}
           />
         </div>
         <Button onClick={answerQuestion} className="w-full" variant="contained">
