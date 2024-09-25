@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button, TextField } from "@mui/material";
 import { getQuizzes, getResult, Quizzes } from "../api";
+import useCodeExecutor from "../hooks/useCodeExecutor";
 
 type Position = {
   x: number;
@@ -20,6 +21,8 @@ const GameScreen = () => {
   const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTextField(event.target.value);
   };
+
+  const { executeCode, executionResult, clearOutput } = useCodeExecutor();
 
   const quiz = quizzes ? quizzes[0] : undefined;
 
@@ -50,6 +53,9 @@ const GameScreen = () => {
 
   const answerQuestion = async () => {
     if (!quiz) return;
+    executeCode(quiz.question.flat().join(" "));
+    console.log(quiz.question.flat().join(" "));
+    console.log(executionResult.logs);
     const response = await getResult(
       quiz.id.toString(),
       clickPosition.y,
@@ -133,6 +139,8 @@ const GameScreen = () => {
           <h3 className="text-xl font-semibold mb-2">結果</h3>
           <p className="text-xl font-bold">{result}</p>
         </div>
+
+        <p>{String(executionResult.logs)}</p>
       </div>
     </div>
   );
