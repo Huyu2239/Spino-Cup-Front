@@ -22,9 +22,10 @@ const GameScreen = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [textField, setTextField] = useState<string>("");
 
-  const { executeCode, executionResult, clearOutput } = useCodeExecutor();
+  const { executeCode, executionResult } = useCodeExecutor();
 
   const quiz = quizzes ? quizzes[0] : undefined;
+
   // const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   setTextField(event.target.value);
   //   const cloneQuestion = [...structuredClone(quiz!).question];
@@ -33,6 +34,7 @@ const GameScreen = () => {
   //   console.log("newUserCode", event.target.value);
   //   setUserCode(newUserCode);
   // };
+
   const [userCode, setUserCode] = useState<string>(
     quiz ? quiz.code : ""
   );
@@ -57,8 +59,10 @@ const GameScreen = () => {
       const response = await getQuizzes();
       setQuizzes(response);
       if (response) {
+
         console.log("response", response[0].code);
         setUserCode(response[0].code);
+
       }
     })();
   }, []);
@@ -83,6 +87,7 @@ const GameScreen = () => {
 
   useEffect(() => {
     if (!quiz) return;
+
     executeCode(userCode);
   }, []);
 
@@ -102,6 +107,7 @@ const GameScreen = () => {
     // // setResult(response.is_correct ? "正解" : "不正解");
     console.log(ast === answerAst);
 
+
     //setResult(ast === answerAst ? "正解" : "不正解");
   };
 
@@ -115,10 +121,17 @@ const GameScreen = () => {
   return (
     <div className="flex max-h-screen">
       {/* {ast && <pre>{ast}</pre>} */}
-      <div className="font-mono w-[50%] mx-2">
+      <div className="font-mono w-[50%] mx-2 overflow-y-scroll ">
         <div className=" p-4 rounded-md border border-[#3c3c3c]">
           <h3 className="text-xl font-semibold mb-2 ">エラー内容</h3>
-          <p>{executionResult.error}</p>
+
+          <div>
+            {executionResult &&
+              executionResult.logs
+                .filter((log, i) => executionResult.logs.indexOf(log) === i)
+                .map((log, i) => <p key={i}>{log}</p>)}
+            {executionResult.error && <p>{executionResult.error}</p>}
+          </div>
         </div>
         <div
           id="game-screen"
@@ -169,8 +182,6 @@ const GameScreen = () => {
             <p className="text-xl font-bold">{executionResult.logs}</p>
             <p className="text-xl font-bold">{executionResult.result}</p>
           </div>
-
-          {/* <p>{String(executionResult.logs)}</p> */}
         </div>
       </div>
       <div className="w-[50%] overflow-y-scroll">
