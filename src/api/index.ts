@@ -31,7 +31,8 @@ export const getQuizzes = async (): Promise<Quizzes | undefined> => {
 export const getResult = async (
   quizId: string,
   x: number,
-  y: number
+  y: number,
+  editedText: string
 ): Promise<QuizResult | undefined> => {
   try {
     const response = await apiClient.get<QuizResult>(
@@ -40,6 +41,7 @@ export const getResult = async (
         params: {
           x: x,
           y: y,
+          editedText: editedText,
         },
       }
     );
