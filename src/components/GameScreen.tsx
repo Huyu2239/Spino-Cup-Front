@@ -21,6 +21,7 @@ const GameScreen = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [textField, setTextField] = useState<string>("");
 
+  // tips: executionResult, clearOutput は 使用すればbuildは通る todo: 使う
   const { executeCode, executionResult, clearOutput } = useCodeExecutor();
 
   const quiz = quizzes ? quizzes[0] : undefined;
@@ -47,8 +48,8 @@ const GameScreen = () => {
           : word
       )
       .join(" ");
-    ast = JSON.stringify(parse(userCode), null, 2);
-    answerAst = JSON.stringify(parse(answer), null, 2);
+    ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
+    answerAst = JSON.stringify(parse(answer, {ecmaVersion: 2022}), null, 2);
   }
 
   useEffect(() => {

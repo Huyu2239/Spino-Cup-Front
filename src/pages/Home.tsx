@@ -1,4 +1,4 @@
-import { Card, CardContent, Container, Typography } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getLanguages } from "../api";
