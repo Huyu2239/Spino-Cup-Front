@@ -43,7 +43,7 @@ const GameScreen = () => {
       const ast = JSON.stringify(parse(code, { ecmaVersion: 2022 }), null, 2);
       return ast;
     } catch (error) {
-      return "error";
+      return String(error);
     }
   };
 
