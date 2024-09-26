@@ -47,7 +47,7 @@ const useCodeExecutor = () => {
       if (data.type === "log") {
         setExecutionResult((prev) => ({
           ...prev,
-          logs: [...prev.logs, `ログ: ${data.message}`],
+          logs: [...prev.logs, `${data.message}`],
         }));
       } else if (data.type === "result" || data.type === "error") {
         const { id } = data;

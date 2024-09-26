@@ -14,7 +14,7 @@ lockdown({
 // エンドウメントの設定
 const endowments = {
   console: {
-    log: (message: any) => {
+    log: (...message: any) => {
       // メインスレッドにログを送信
       self.postMessage({ type: "log", message });
     },

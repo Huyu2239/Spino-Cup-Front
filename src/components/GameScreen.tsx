@@ -1,30 +1,28 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Button, TextField } from "@mui/material";
-import { getQuizzes, getResult, Quizzes } from "../api";
+import { useEffect, useState, useRef } from "react";
+import { Button } from "@mui/material";
+import { getQuizzes, Quizzes } from "../api";
 import useCodeExecutor from "../hooks/useCodeExecutor";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { parse } from "acorn";
 import CodeEditor from "./CodeEditor";
+import { useNavigate } from "react-router-dom";
 type Position = {
   x: number;
   y: number;
 };
 
 const GameScreen = () => {
+  const navigate = useNavigate();
   const [cursorPosition, setCursorPosition] = useState<Position>({
     x: 0,
     y: 0,
   });
-  const [clickPosition, setClickPosition] = useState<Position>({ x: 0, y: 0 });
   const [quizzes, setQuizzes] = useState<Quizzes | undefined>(undefined);
-
-  const [result, setResult] = useState<string>("");
   const gameAreaRef = useRef<HTMLDivElement>(null);
-  const [textField, setTextField] = useState<string>("");
 
   const { executeCode, executionResult } = useCodeExecutor();
 
-  const quiz = quizzes ? quizzes[0] : undefined;
+  const quiz = quizzes ? quizzes[2] : undefined;
 
   // const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   setTextField(event.target.value);
@@ -34,32 +32,35 @@ const GameScreen = () => {
   //   console.log("newUserCode", event.target.value);
   //   setUserCode(newUserCode);
   // };
-
-  const [userCode, setUserCode] = useState<string>(quiz ? quiz.code : "");
+  const [userCode, setUserCode] = useState<string>("");
   let answer;
   let ast = "";
   let answerAst = "";
 
-  // if (quiz) {
-  //   answer = quiz.question
-  //     .flat()
-  //     .map((word) =>
-  //       word === "console.log(evenNumbers.lenght);"
-  //         ? "console.log(evenNumbers.length);"
-  //         : word
-  //     )
-  //     .join(" ");
-  //   ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
-  //   answerAst = JSON.stringify(answer, {ecmaVersion: 2022}), null, 2);
-  // }
+  const astParser = (code: string) => {
+    // return JSON.stringify(parse(code, { ecmaVersion: 2022 }), null, 2);
+    try {
+      const ast = JSON.stringify(parse(code, { ecmaVersion: 2022 }), null, 2);
+      return ast;
+    } catch (error) {
+      return "error";
+    }
+  };
+
+  if (quiz) {
+    answer = quiz.code;
+
+    ast = astParser(userCode);
+
+    answerAst = astParser(answer);
+  }
 
   useEffect(() => {
     (async () => {
       const response = await getQuizzes();
       setQuizzes(response);
       if (response) {
-        console.log("response", response[0].code);
-        setUserCode(response[0].code);
+        setUserCode(response[2].incorrect_code);
       }
     })();
   }, []);
@@ -90,46 +91,28 @@ const GameScreen = () => {
 
   const answerQuestion = async () => {
     if (!quiz) return;
-    executeCode(quiz.pre_code + userCode);
 
-    setResult(
-      executionResult.logs.join(" ") == quiz.output_sample ? "正解" : "不正解"
-    );
+    executeCode(quiz.input_sample + userCode);
 
-    // const response = await getResult(
-    //   quiz.id.toString(),
-    //   clickPosition.y,
-    //   clickPosition.x,
-    //   textField
+    // setResult(
+    //   executionResult.logs.join(" ") == quiz.output_sample ? "正解" : "不正解"
     // );
-    // if (response === undefined) return;
-    // // setResult(response.is_correct ? "正解" : "不正解");
-    console.log(ast === answerAst);
-
-    //setResult(ast === answerAst ? "正解" : "不正解");
   };
 
-  const onClickArea = (x: number, y: number, event: React.MouseEvent) => {
-    if (!quiz) return;
-    event.preventDefault();
-    setClickPosition({ x: x, y: y });
-    setTextField(quiz.question[x][y]);
-  };
+  // const onClickArea = (x: number, y: number, event: React.MouseEvent) => {
+  //   if (!quiz) return;
+  //   event.preventDefault();
+  //   setClickPosition({ x: x, y: y });
+  //   setTextField(quiz.question[x][y]);
+  // };
 
   return (
     <div className="flex max-h-screen">
-      {/* {ast && <pre>{ast}</pre>} */}
       <div className="font-mono w-[50%] mx-2 overflow-y-scroll ">
         <div className=" p-4 rounded-md border border-[#3c3c3c]">
-          <h3 className="text-xl font-semibold mb-2 ">エラー内容</h3>
+          <h3 className="text-xl font-semibold mb-2 ">問題文</h3>
 
-          <div>
-            {executionResult &&
-              executionResult.logs
-                .filter((log, i) => executionResult.logs.indexOf(log) === i)
-                .map((log, i) => <p key={i}>{log}</p>)}
-            {executionResult.error && <p>{executionResult.error}</p>}
-          </div>
+          <div>{quiz?.question}</div>
         </div>
         <div
           id="game-screen"
@@ -173,12 +156,44 @@ const GameScreen = () => {
           >
             回答
           </Button>
+
+          <div className=" p-4 rounded-md border border-[#3c3c3c]">
+            <h3 className="text-xl font-semibold mb-2 ">入力例</h3>
+
+            <div>{quiz?.input_sample}</div>
+          </div>
+          <div className=" p-4 rounded-md border border-[#3c3c3c]">
+            <h3 className="text-xl font-semibold mb-2 ">出力例</h3>
+
+            <div>{quiz?.output_sample}</div>
+          </div>
+
+          <div className=" p-4 rounded-md border border-[#3c3c3c]">
+            <h3 className="text-xl font-semibold mb-2 ">エラー内容</h3>
+
+            <div>
+              {executionResult &&
+                executionResult.logs
+                  .filter((log, i) => executionResult.logs.indexOf(log) === i)
+                  .map((log, i) => <p key={i}>{log}</p>)}
+              {executionResult.error && <p>{executionResult.error}</p>}
+            </div>
+          </div>
           <div className="p-4 rounded-md border border-[#3c3c3c] h-[100px]">
             <h3 className="text-xl font-semibold mb-2">結果</h3>
-            <p className="text-xl font-bold">{result}</p>
-            <p className="text-xl font-bold">{executionResult.logs}</p>
-            <p className="text-xl font-bold">{executionResult.result}</p>
+            <p>
+              {executionResult.logs.join(" ") == quiz?.output_sample
+                ? "正解"
+                : "不正解"}
+            </p>
           </div>
+          <Button
+            onClick={() => navigate("/")}
+            className="w-full"
+            variant="contained"
+          >
+            戻る
+          </Button>
         </div>
       </div>
       <div className="w-[50%] overflow-y-scroll">
@@ -193,7 +208,6 @@ const GameScreen = () => {
           showDiffOnly={false}
         />
       </div>
-      {/* {answerAst && <pre>{answerAst}</pre>} */}
     </div>
   );
 };

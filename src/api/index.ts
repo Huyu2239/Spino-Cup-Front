@@ -14,6 +14,7 @@ interface Quiz {
   input_secret: string;
   output_secret: string;
   pre_code: string;
+  incorrect_code: string;
 }
 
 export type Quizzes = Array<Quiz>;
