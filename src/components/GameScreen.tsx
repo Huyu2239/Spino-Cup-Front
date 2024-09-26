@@ -6,6 +6,7 @@ import ReactDiffViewer from "react-diff-viewer-continued";
 import { parse } from "acorn";
 import CodeEditor from "./CodeEditor";
 import { useNavigate } from "react-router-dom";
+import { formatCode } from "../codeformatter";
 type Position = {
   x: number;
   y: number;
@@ -21,6 +22,7 @@ const GameScreen = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const { executeCode, executionResult } = useCodeExecutor();
+  console.log(quizzes);
 
   const quiz = quizzes ? quizzes[2] : undefined;
 
@@ -43,7 +45,7 @@ const GameScreen = () => {
       const ast = JSON.stringify(parse(code, { ecmaVersion: 2022 }), null, 2);
       return ast;
     } catch (error) {
-      return "error";
+      return String(error);
     }
   };
 
@@ -119,7 +121,7 @@ const GameScreen = () => {
           ref={gameAreaRef}
           className="focus:outline-none text-2xl bg-gray-800 text-white p-4 mt-4 relative overflow-hidden min-h-[500px] w-full"
         >
-          <CodeEditor code={userCode} onChange={setUserCode} />
+          <CodeEditor code={formatCode(userCode)} onChange={setUserCode} />
 
           <svg
             id="cursor-overlay"
