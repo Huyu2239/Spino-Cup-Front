@@ -1,6 +1,4 @@
-import { useRef, useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
-import * as monacoEditor from "monaco-editor"; // monaco-editorの型をインポート
 
 interface CodeEditorProps {
   code: string;
