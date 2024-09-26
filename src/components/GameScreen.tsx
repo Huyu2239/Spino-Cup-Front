@@ -39,6 +39,7 @@ const GameScreen = () => {
   let answer;
   let ast = "";
   let answerAst = "";
+
   // if (quiz) {
   //   answer = quiz.question
   //     .flat()
@@ -48,8 +49,8 @@ const GameScreen = () => {
   //         : word
   //     )
   //     .join(" ");
-  //   ast = JSON.stringify(parse(userCode), null, 2);
-  //   answerAst = JSON.stringify(parse(answer), null, 2);
+  //   ast = JSON.stringify(parse(userCode, {ecmaVersion: 2022}), null, 2);
+  //   answerAst = JSON.stringify(answer, {ecmaVersion: 2022}), null, 2);
   // }
 
   useEffect(() => {
